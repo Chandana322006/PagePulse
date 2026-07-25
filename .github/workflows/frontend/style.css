@@ -1,3 +1,6 @@
+<html>
+<head>
+<style>
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f7fb;
@@ -55,3 +58,8 @@ footer {
     color: gray;
     font-size: 14px;
 }
+</style>
+<link rel="preload" href="/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+      <noscript><link rel="stylesheet" href="/style.css"></noscript>
+    </head>
+    </html>
