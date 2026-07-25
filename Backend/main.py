@@ -1,63 +1,157 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 import requests
-import time
 from bs4 import BeautifulSoup
-app=FastAPI()
+import time
+
+
+app = FastAPI(
+    title="PagePulse API",
+    description="Website analysis tool",
+    version="1.0"
+)
+
+
+# Allow Netlify frontend to access backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
+    allow_origins=["*"],   # change to Netlify URL later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
 @app.get("/")
 def home():
-    return{"message":"WELCOME TO PAGE PULSE"}
-@app.get("/analyze")
-def analyze(url: str):
-    try:
-        start_time = time.time()
-        response = requests.get(url, timeout=10)
-        status_code = response.status_code
-        response_time = round((time.time() - start_time) * 1000, 2)
-        soup = BeautifulSoup(response.text, "html.parser")
-        title = soup.title.string.strip() if soup.title else "No title found"
-        meta = soup.find("meta", attrs={"name": "description"})
-        meta_description = meta["content"] if meta and meta.get("content") else "No meta description"
-        h1_count = len(soup.find_all("h1"))
-        images = soup.find_all("img")
-        missing_alt = sum(1 for img in images if not img.get("alt"))
-        text = soup.get_text(separator=" ", strip=True)
-        word_count = len(text.split())
-        content_type = response.headers.get("Content-Type", "")
+    return {
+        "message": "PagePulse Backend is running 🚀"
+    }
 
-        if "text/html" not in content_type:
-            return {
-                "error": "The provided URL is not an HTML webpage."
-  }
-        
+
+
+@app.get("/analyze")
+def analyze(url: str = Query(..., description="Website URL to analyze")):
+
+    try:
+
+        # Start timer
+        start_time = time.time()
+
+
+        # Send request to website
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+
+
+        # Response time
+        end_time = time.time()
+
+        response_time_ms = round(
+            (end_time - start_time) * 1000,
+            2
+        )
+
+
+        # Parse HTML
+        soup = BeautifulSoup(
+            response.text,
+            "html.parser"
+        )
+
+
+        # Title
+        title = (
+            soup.title.text.strip()
+            if soup.title
+            else "No title found"
+        )
+
+
+        # Meta description
+        meta = soup.find(
+            "meta",
+            attrs={"name": "description"}
+        )
+
+        meta_description = (
+            meta["content"]
+            if meta and meta.get("content")
+            else "No description found"
+        )
+
+
+        # Count H1 tags
+        h1_count = len(
+            soup.find_all("h1")
+        )
+
+
+        # Images without alt attribute
+        images = soup.find_all("img")
+
+        missing_alt = 0
+
+        for img in images:
+            if not img.get("alt"):
+                missing_alt += 1
+
+
+
+        # Word count
+        text = soup.get_text(
+            separator=" "
+        )
+
+        words = text.split()
+
+        word_count = len(words)
+
+
+
         return {
-            "status_code": status_code,
-            "response_time_ms": response_time,
+
+            "status_code": response.status_code,
+
+            "response_time_ms": response_time_ms,
+
             "title": title,
+
             "meta_description": meta_description,
+
             "h1_count": h1_count,
+
             "missing_alt": missing_alt,
+
             "word_count": word_count
 
-}
-    except requests.exceptions.MissingSchema:
-        return {
-            "error": "Invalid URL. Please include http:// or https://"
-    }
+        }
+
 
     except requests.exceptions.Timeout:
-        return {
-            "error": "The request timed out."
-    }
 
-    except requests.exceptions.RequestException as e:
+        return {
+            "error": "Website took too long to respond"
+        }
+
+
+    except requests.exceptions.RequestException:
+
+        return {
+            "error": "Could not fetch website"
+        }
+
+
+    except Exception as e:
+
         return {
             "error": str(e)
-    }
+        }
