@@ -1,0 +1,32 @@
+# Python virtual environments
+venv/
+.venv/
+.venv-1/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
