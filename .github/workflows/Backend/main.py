@@ -15,7 +15,7 @@ app = FastAPI(
 # Allow Netlify frontend to access backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://pagepulse-frontend-6gp3.onrender.com"],   # change to Netlify URL later
+    allow_origins=["*"],   # change to Netlify URL later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
